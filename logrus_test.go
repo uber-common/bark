@@ -35,23 +35,59 @@ func checkOutput(t *testing.T, buffer *bytes.Buffer, expectedFields map[string]s
 	}
 }
 
-func TestInfo(t *testing.T) {
-	logger, buffer := getLogger()
+type testFunc func(l bark.Logger)
+type fields map[string]string
 
-	logger.Info("info", "info")
-	checkOutput(t, buffer, map[string]string{"level": "info", "msg": "infoinfo"})
+func TestBasicLogging(t *testing.T) {
+	var testCases = []struct {
+		doLogging testFunc
+		expectedFields map[string]string
+	}{
+		{func(l bark.Logger) { l.Info("info", "info") }, fields{"level": "info", "msg": "infoinfo"}},
+		{func(l bark.Logger) { l.Infof("infof%s", "infof") }, fields{"level": "info", "msg": "infofinfof"}},
+		{func(l bark.Logger) { l.Warn("warn", "warn") }, fields{"level": "warning", "msg": "warnwarn"}},
+		{func(l bark.Logger) { l.Warnf("warnf%s", "warnf") }, fields{"level": "warning", "msg": "warnfwarnf"}},
+		{func(l bark.Logger) { l.Error("error", "error") }, fields{"level": "error", "msg": "errorerror"}},
+		{func(l bark.Logger) { l.Errorf("errorf%s", "errorf") }, fields{"level": "error", "msg": "errorferrorf"}},
+		{func(l bark.Logger) { l.WithField("foo", "bar").Info("Info") }, fields{"level": "info", "msg": "Info", "foo":"bar"}},
+		{
+			func(l bark.Logger) {
+				l.WithFields(map[string]interface{}{"someField":"someValue"}).Info("Yay")
+			},
+			fields{"level": "info", "msg": "Yay", "someField": "someValue"},
+		},
+	}
+
+	for _, testCase := range testCases {
+		logger, buffer := getLogger()
+		testCase.doLogging(logger)
+		checkOutput(t, buffer, testCase.expectedFields)
+	}
+
 }
 
-func TestInfof(t *testing.T) {
+func TestPanic(t *testing.T) {
 	logger, buffer := getLogger()
 
-	logger.Infof("infof%s", "infof")
-	checkOutput(t, buffer, map[string]string{"level": "info", "msg": "infofinfof"})
+	defer func() {
+		if r := recover(); r != nil {
+			checkOutput(t, buffer, fields{"level": "panic", "msg": "panic"})
+		}
+	}()
+
+	logger.Panic("panic")
+	t.Fail()
 }
 
-func TestWarn(t *testing.T) {
+func TestPanicf(t *testing.T) {
 	logger, buffer := getLogger()
 
-	logger.Warn("warn", "warn")
-	checkOutput(t, buffer, map[string]string{"level": "warning", "msg": "warnwarn"})
+	defer func() {
+		if r := recover(); r != nil {
+			checkOutput(t, buffer, fields{"level": "panic", "msg": "panicpanic"})
+		}
+	}()
+
+	logger.Panicf("panic%s", "panic")
+	t.Fail()
 }
