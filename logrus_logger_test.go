@@ -20,7 +20,7 @@ func getLogger() (bark.Logger, *bytes.Buffer) {
 	logrusLogger.Formatter = new(logrus.JSONFormatter)
 	logrusLogger.Level = logrus.DebugLevel
 
-	return bark.NewFromLogrus(logrusLogger), buffer
+	return bark.NewLoggerFromLogrus(logrusLogger), buffer
 }
 
 func checkOutput(t *testing.T, buffer *bytes.Buffer, expectedFields map[string]string) {

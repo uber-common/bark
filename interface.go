@@ -26,7 +26,11 @@ package bark
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import "github.com/Sirupsen/logrus"
+import (
+	"github.com/Sirupsen/logrus"
+	"time"
+	"github.com/cactus/go-statsd-client/statsd"
+)
 
 type Logger interface {
 	Debug(args ...interface{})
@@ -51,6 +55,16 @@ type Entry interface {
 }
 
 // Create a bark-compliant wrapper for a logrus-brand logger
-func NewFromLogrus(wrappedLogger *logrus.Logger) Logger {
+func NewLoggerFromLogrus(wrappedLogger *logrus.Logger) Logger {
 	return newBarkLogrusLogger(wrappedLogger)
+}
+
+type StatsReporter interface {
+	IncCounter(name string, tags map[string]string, value int64)
+	UpdateGauge(name string, tags map[string]string, value int64)
+	RecordTimer(name string, tags map[string]string, d time.Duration)
+}
+
+func NewStatsReporterFromCactus(wrappedStatsd statsd.Statter) StatsReporter {
+	return newBarkCactusStatsReporter(wrappedStatsd)
 }
