@@ -45,20 +45,9 @@ type barkLogrusLogger struct {
 	delegate logrusLoggerOrEntry
 }
 
-// The bark-compliant Entry implementation
-type barkLogrusEntry struct {
-	barkLogrusLogger
-	delegate *logrus.Entry
-
-}
-
 // Constructors
-func newBarkLogrusLogger(wrappedObject *logrus.Logger) Logger {
+func newBarkLogrusLogger(wrappedObject logrusLoggerOrEntry) Logger {
 	return &barkLogrusLogger{delegate: wrappedObject}
-}
-
-func newBarkLogrusEntry(wrappedObject *logrus.Entry) Entry {
-	return &barkLogrusEntry{barkLogrusLogger: barkLogrusLogger{delegate: wrappedObject}, delegate: wrappedObject}
 }
 
 // All methods thunk to the logrus delegate
@@ -110,15 +99,11 @@ func (l *barkLogrusLogger) Panicf(format string, args ...interface{}) {
 	l.delegate.Panicf(format, args...)
 }
 
-func (e *barkLogrusEntry) Data() map[string]interface{} {
-	return e.delegate.Data
+func (l *barkLogrusLogger) WithField(key string, value interface{}) Logger {
+	return newBarkLogrusLogger(l.delegate.WithField(key, value))
 }
 
-func (l *barkLogrusLogger) WithField(key string, value interface{}) Entry {
-	return newBarkLogrusEntry(l.delegate.WithField(key, value))
-}
-
-func (l *barkLogrusLogger) WithFields(keyValues LogFields) Entry {
-	return newBarkLogrusEntry(l.delegate.WithFields(logrus.Fields(keyValues.Fields())))
+func (l *barkLogrusLogger) WithFields(keyValues LogFields) Logger {
+	return newBarkLogrusLogger(l.delegate.WithFields(logrus.Fields(keyValues.Fields())))
 }
 

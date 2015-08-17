@@ -45,13 +45,8 @@ type Logger interface {
 	Fatalf(format string, args ...interface{})
 	Panic(args ...interface{})
 	Panicf(format string, args ...interface{})
-	WithField(key string, value interface{}) Entry
-	WithFields(keyValues LogFields) Entry
-}
-
-type Entry interface {
-	Logger
-	Data() map[string]interface{}
+	WithField(key string, value interface{}) Logger
+	WithFields(keyValues LogFields) Logger
 }
 
 type LogFields interface {
