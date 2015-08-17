@@ -118,7 +118,7 @@ func (l *barkLogrusLogger) WithField(key string, value interface{}) Entry {
 	return newBarkLogrusEntry(l.delegate.WithField(key, value))
 }
 
-func (l *barkLogrusLogger) WithFields(keyValues map[string]interface{}) Entry {
-	return newBarkLogrusEntry(l.delegate.WithFields(logrus.Fields(keyValues)))
+func (l *barkLogrusLogger) WithFields(keyValues LogFields) Entry {
+	return newBarkLogrusEntry(l.delegate.WithFields(logrus.Fields(keyValues.Fields())))
 }
 

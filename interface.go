@@ -46,12 +46,22 @@ type Logger interface {
 	Panic(args ...interface{})
 	Panicf(format string, args ...interface{})
 	WithField(key string, value interface{}) Entry
-	WithFields(keyValues map[string]interface{}) Entry
+	WithFields(keyValues LogFields) Entry
 }
 
 type Entry interface {
 	Logger
 	Data() map[string]interface{}
+}
+
+type LogFields interface {
+	Fields() map[string]interface{}
+}
+
+type Fields map[string]interface{}
+
+func (f Fields) Fields() map[string]interface{} {
+	return f
 }
 
 // Create a bark-compliant wrapper for a logrus-brand logger
