@@ -32,6 +32,9 @@ import (
 	"github.com/cactus/go-statsd-client/statsd"
 )
 
+/*
+ * Interface for loggers accepted by Uber's libraries.
+ */
 type Logger interface {
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})
@@ -49,27 +52,48 @@ type Logger interface {
 	WithFields(keyValues LogFields) Logger
 }
 
+/*
+ * Interface for dictionaries passed to WithFields logging method.
+ * Exists to provide a layer of indirection so code already using other
+ * "Fields" types can be changed to use bark.Logger instances without
+ * any refactoring (sidesteps the fact that if we used a non-interface
+ * type, then yourloggingmodule.Fields would not assignable to bark.Fields).
+ */
 type LogFields interface {
 	Fields() map[string]interface{}
 }
 
+/*
+ * Actual Fields type, as in myLogger.WithFields(bark.Fields{"foo": "bar"}).Info("Fields!")
+ */
 type Fields map[string]interface{}
 
+/*
+ * Method to provide required layer of indirection for interface Fields type.
+ */
 func (f Fields) Fields() map[string]interface{} {
 	return f
 }
 
-// Create a bark-compliant wrapper for a logrus-brand logger
+/*
+ * Create a bark-compliant wrapper for a logrus-brand logger
+ */
 func NewLoggerFromLogrus(wrappedLogger *logrus.Logger) Logger {
 	return newBarkLogrusLogger(wrappedLogger)
 }
 
+/*
+ * Interface for statsd-like stats reporters accepted by Uber's libraries.
+ */
 type StatsReporter interface {
 	IncCounter(name string, tags map[string]string, value int64)
 	UpdateGauge(name string, tags map[string]string, value int64)
 	RecordTimer(name string, tags map[string]string, d time.Duration)
 }
 
+/*
+ * Create a bark-compliant wrapper for a cactus-brand statsd Statter.
+ */
 func NewStatsReporterFromCactus(wrappedStatsd statsd.Statter) StatsReporter {
 	return newBarkCactusStatsReporter(wrappedStatsd)
 }
