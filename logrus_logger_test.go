@@ -21,10 +21,14 @@ package bark_test
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"syscall"
 	"testing"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/uber/bark"
 )
 
@@ -47,33 +51,40 @@ func getBarkLogger() (bark.Logger, *bytes.Buffer) {
 }
 
 // Extract map of keys and values from raw json data in buffer
-func parseLogBuffer(buffer *bytes.Buffer) map[string]interface{} {
+func parseLogBytes(logBytes []byte) map[string]interface{} {
 	var unmarshalledData interface{}
-	output, _ := buffer.ReadBytes('\n')
-	json.Unmarshal(output, &unmarshalledData)
+	json.Unmarshal(logBytes, &unmarshalledData)
+
+	if unmarshalledData == nil {
+		return nil
+	}
+
 	return unmarshalledData.(map[string]interface{})
 }
 
 // Validate bark output against logrus output
-func validateOutput(t *testing.T, barkBuffer *bytes.Buffer, logrusBuffer *bytes.Buffer) {
-	barkMap := parseLogBuffer(barkBuffer)
-	logrusMap := parseLogBuffer(logrusBuffer)
+func validateOutput(t *testing.T, barkBytes []byte, logrusBytes []byte) {
+	barkMap := parseLogBytes(barkBytes)
+	require.NotNil(t, barkMap, "Should be able to parse bark output as JSON")
+
+	logrusMap := parseLogBytes(logrusBytes)
+	require.NotNil(t, logrusMap, "Should be able to parse logrus output as JSON")
 
 	// Make sure we're checking at least the fields we expect
 	minFields := []string{"time", "level", "msg"}
 	for _, key := range minFields {
 		_, ok := logrusMap[key]
-		assert.True(t, ok, "Logrus missing required field: %s", key)
+		require.True(t, ok, "Logrus missing required field: %s", key)
 	}
 
 	// Make sure bark output has everything logrus does
 	for key, logrusValue := range logrusMap {
 		barkValue, ok := barkMap[key]
-		assert.True(t, ok)
+		require.True(t, ok)
 
 		// Can't mock time to logrus, so have to skip it
 		if key != "time" {
-			assert.Equal(t, logrusValue, barkValue, "Field of output didn't match logrus")
+			require.Equal(t, logrusValue, barkValue, "Field of outputs of output should match logrus")
 		}
 	}
 }
@@ -176,5 +187,42 @@ func logAndValidate(t *testing.T, driver func(barkLogger bark.Logger, logrusLogg
 	logrusLogger, logrusBuffer := getLogrusLogger()
 
 	driver(barkLogger, logrusLogger)
-	validateOutput(t, barkBuffer, logrusBuffer)
+	validateOutput(t, barkBuffer.Bytes(), logrusBuffer.Bytes())
+}
+
+// Fatal tests are special: have to execute a command and confirm that it exits
+func execFatalTool(t *testing.T, how string) []byte {
+	helperBinary := "./testhelp/fatal"
+
+	_, err := os.Stat(helperBinary)
+	require.NoError(t, err, "Helper binary should exist: run 'make test'!")
+
+	cmd := exec.Command(helperBinary, how)
+
+	stderrPipe, err := cmd.StderrPipe()
+	require.NoError(t, err, "Should be able to get a pipe of standard error")
+
+	startError := cmd.Start()
+	require.NoError(t, startError, "Process should start without error")
+
+	stderrBytes, err := ioutil.ReadAll(stderrPipe)
+	require.NoError(t, err, "Should read stderr successfully")
+
+	exitError := cmd.Wait()
+	require.Error(t, exitError, "Process should exit with an error")
+	require.Equal(t, 1, exitError.(*exec.ExitError).Sys().(syscall.WaitStatus).ExitStatus(), "Should exit with status 1")
+
+	return stderrBytes
+}
+
+func TestFatal(t *testing.T) {
+	logrusStderr := execFatalTool(t, "logrus.Fatal")
+	barkStderr := execFatalTool(t, "bark.Fatal")
+	validateOutput(t, barkStderr, logrusStderr)
+}
+
+func TestFatalf(t *testing.T) {
+	logrusStderr := execFatalTool(t, "logrus.Fatalf")
+	barkStderr := execFatalTool(t, "bark.Fatalf")
+	validateOutput(t, barkStderr, logrusStderr)
 }

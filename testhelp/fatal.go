@@ -18,7 +18,8 @@ package main
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import (
+import
+(
 	"os"
 
 	"github.com/Sirupsen/logrus"
@@ -28,7 +29,26 @@ import (
 func main() {
 	var logrusLogger *logrus.Logger = logrus.New()
 	logrusLogger.Formatter = new(logrus.JSONFormatter)
-	logrusLogger.Level = logrus.DebugLevel
-	bark.NewLoggerFromLogrus(logrusLogger).Fatal("halp")
+
+	if len(os.Args) != 2 {
+		logrus.Error("Must pass an arg to test program...")
+		os.Exit(99)
+	}
+
+	switch os.Args[1] {
+	case "logrus.Fatal":
+		logrusLogger.Fatal("fatal error")
+	case "logrus.Fatalf":
+		logrusLogger.Fatalf("fatal error%s", "fatal error")
+	case "bark.Fatal":
+		bark.NewLoggerFromLogrus(logrusLogger).Fatal("fatal error")
+	case "bark.Fatalf":
+		bark.NewLoggerFromLogrus(logrusLogger).Fatalf("fatal error%s", "fatal error")
+	default:
+		logrus.Error("Arg to test program must be 'bark' or 'logrus'")
+		os.Exit(100)
+	}
+
+	logrus.Error("Expected fatal methods to exit...")
 	os.Exit(2)
 }
