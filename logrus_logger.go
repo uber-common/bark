@@ -44,15 +44,15 @@ type barkLogrusLogger struct {
 	logrusLoggerOrEntry
 }
 
-// Constructors
-func newBarkLogrusLogger(wrappedObject logrusLoggerOrEntry) Logger {
-	return &barkLogrusLogger{logrusLoggerOrEntry: wrappedObject}
+// Note: logger is immutable, safe to use non-pointer receivers
+func newBarkLogrusLogger(loggerOrEntry logrusLoggerOrEntry) Logger {
+	return barkLogrusLogger{logrusLoggerOrEntry: loggerOrEntry}
 }
 
-func (l *barkLogrusLogger) WithField(key string, value interface{}) Logger {
+func (l barkLogrusLogger) WithField(key string, value interface{}) Logger {
 	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithField(key, value))
 }
 
-func (l *barkLogrusLogger) WithFields(keyValues LogFields) Logger {
+func (l barkLogrusLogger) WithFields(keyValues LogFields) Logger {
 	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithFields(logrus.Fields(keyValues.Fields())))
 }

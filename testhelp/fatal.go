@@ -32,7 +32,7 @@ func main() {
 
 	if len(os.Args) != 2 {
 		logrus.Error("Must pass an arg to test program...")
-		os.Exit(99)
+		os.Exit(0)
 	}
 
 	switch os.Args[1] {
@@ -44,11 +44,8 @@ func main() {
 		bark.NewLoggerFromLogrus(logrusLogger).Fatal("fatal error")
 	case "bark.Fatalf":
 		bark.NewLoggerFromLogrus(logrusLogger).Fatalf("fatal error%s", "fatal error")
-	default:
-		logrus.Error("Arg to test program must be 'bark' or 'logrus'")
-		os.Exit(100)
 	}
 
 	logrus.Error("Expected fatal methods to exit...")
-	os.Exit(2)
+	os.Exit(0)
 }

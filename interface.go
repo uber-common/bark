@@ -97,8 +97,8 @@ func (f Fields) Fields() map[string]interface{} {
 }
 
 // NewLoggerFromLogrus creates a bark-compliant wrapper for a logrus-brand logger.
-func NewLoggerFromLogrus(wrappedLogger *logrus.Logger) Logger {
-	return newBarkLogrusLogger(wrappedLogger)
+func NewLoggerFromLogrus(logger *logrus.Logger) Logger {
+	return newBarkLogrusLogger(logger)
 }
 
 // Tags is an alias of map[string]string, a type for tags associated with a statistic
@@ -118,6 +118,6 @@ type StatsReporter interface {
 }
 
 // NewStatsReporterFromCactus creates a bark-compliant wrapper for a cactus-brand statsd Statter.
-func NewStatsReporterFromCactus(wrappedStatsd statsd.Statter) StatsReporter {
-	return newBarkCactusStatsReporter(wrappedStatsd)
+func NewStatsReporterFromCactus(statter statsd.Statter) StatsReporter {
+	return newBarkCactusStatsReporter(statter)
 }

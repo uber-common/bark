@@ -21,13 +21,12 @@ package bark_test
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"os/exec"
-	"syscall"
 	"testing"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uber/bark"
 )
@@ -198,21 +197,14 @@ func execFatalTool(t *testing.T, how string) []byte {
 	require.NoError(t, err, "Helper binary should exist: run 'make test'!")
 
 	cmd := exec.Command(helperBinary, how)
+	output, err := cmd.CombinedOutput()
+	if assert.Error(t, err, "Process should exit with an error") {
+		_, ok := err.(*exec.ExitError)
+		assert.True(t, ok, "Process should exit with an ExitError")
+	}
 
-	stderrPipe, err := cmd.StderrPipe()
-	require.NoError(t, err, "Should be able to get a pipe of standard error")
-
-	startError := cmd.Start()
-	require.NoError(t, startError, "Process should start without error")
-
-	stderrBytes, err := ioutil.ReadAll(stderrPipe)
-	require.NoError(t, err, "Should read stderr successfully")
-
-	exitError := cmd.Wait()
-	require.Error(t, exitError, "Process should exit with an error")
-	require.Equal(t, 1, exitError.(*exec.ExitError).Sys().(syscall.WaitStatus).ExitStatus(), "Should exit with status 1")
-
-	return stderrBytes
+	require.Contains(t, string(output), "fatal error")
+	return output
 }
 
 func TestFatal(t *testing.T) {
