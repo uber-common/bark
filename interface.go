@@ -1,14 +1,3 @@
-//
-// bark provides an abstraction for loggers and stats reporters used in Uber's
-// Go libraries.  It decouples these libraries slightly from specific
-// logger implementations; for example, the popular open source library
-// logrus, which offers no interfaces (and thus cannot be, for instance, easily mocked).
-//
-// Users may choose to implement the interfaces themselves or to use the provided wrappers
-// for logrus loggers and cactus/go-statsd-client stats reporters.
-//
-package bark
-
 // Copyright (c) 2015 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,6 +15,15 @@ package bark
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
+// Package bark provides an abstraction for loggers and stats reporters used in Uber's
+// Go libraries.  It decouples these libraries slightly from specific
+// logger implementations; for example, the popular open source library
+// logrus, which offers no interfaces (and thus cannot be, for instance, easily mocked).
+//
+// Users may choose to implement the interfaces themselves or to use the provided wrappers
+// for logrus loggers and cactus/go-statsd-client stats reporters.
+package bark
 
 import (
 	"time"
