@@ -19,16 +19,17 @@ package bark
 // THE SOFTWARE.
 
 import (
-	"github.com/cactus/go-statsd-client/statsd"
 	"time"
+
+	"github.com/cactus/go-statsd-client/statsd"
 )
 
 type barkCactusStatsReporter struct {
 	delegate statsd.Statter
 }
 
-func newBarkCactusStatsReporter(wrappedObject statsd.Statter) StatsReporter {
-	return &barkCactusStatsReporter{delegate: wrappedObject}
+func newBarkCactusStatsReporter(statter statsd.Statter) StatsReporter {
+	return &barkCactusStatsReporter{delegate: statter}
 }
 
 func (s *barkCactusStatsReporter) IncCounter(name string, tags map[string]string, value int64) {

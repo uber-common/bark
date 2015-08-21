@@ -18,9 +18,7 @@ package bark
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import (
-	"github.com/Sirupsen/logrus"
-)
+import "github.com/Sirupsen/logrus"
 
 // Interface provides indirection so Entry and Logger implementations can use exact same methods
 type logrusLoggerOrEntry interface {
@@ -40,70 +38,21 @@ type logrusLoggerOrEntry interface {
 	WithFields(keyValues logrus.Fields) *logrus.Entry
 }
 
-// The bark-compliant Logger implementation
+// The bark-compliant Logger implementation.  Dispatches directly to wrapped logrus
+// instance for all methods except WithField and WithFields
 type barkLogrusLogger struct {
-	delegate logrusLoggerOrEntry
+	logrusLoggerOrEntry
 }
 
 // Constructors
 func newBarkLogrusLogger(wrappedObject logrusLoggerOrEntry) Logger {
-	return &barkLogrusLogger{delegate: wrappedObject}
-}
-
-// All methods thunk to the logrus delegate
-func (l *barkLogrusLogger) Debug(args ...interface{}) {
-	l.delegate.Debug(args...)
-}
-
-func (l *barkLogrusLogger) Debugf(format string, args ...interface{}) {
-	l.delegate.Debugf(format, args...)
-}
-
-func (l *barkLogrusLogger) Info(args ...interface{}) {
-	l.delegate.Info(args...)
-}
-
-func (l *barkLogrusLogger) Infof(format string, args ...interface{}) {
-	l.delegate.Infof(format, args...)
-}
-
-func (l *barkLogrusLogger) Warn(args ...interface{}) {
-	l.delegate.Warn(args...)
-}
-
-func (l *barkLogrusLogger) Warnf(format string, args ...interface{}) {
-	l.delegate.Warnf(format, args...)
-}
-
-func (l *barkLogrusLogger) Error(args ...interface{}) {
-	l.delegate.Error(args...)
-}
-
-func (l *barkLogrusLogger) Errorf(format string, args ...interface{}) {
-	l.delegate.Errorf(format, args...)
-}
-
-func (l *barkLogrusLogger) Fatal(args ...interface{}) {
-	l.delegate.Fatal(args...)
-}
-
-func (l *barkLogrusLogger) Fatalf(format string, args ...interface{}) {
-	l.delegate.Fatalf(format, args...)
-}
-
-func (l *barkLogrusLogger) Panic(args ...interface{}) {
-	l.delegate.Panic(args...)
-}
-
-func (l *barkLogrusLogger) Panicf(format string, args ...interface{}) {
-	l.delegate.Panicf(format, args...)
+	return &barkLogrusLogger{logrusLoggerOrEntry: wrappedObject}
 }
 
 func (l *barkLogrusLogger) WithField(key string, value interface{}) Logger {
-	return newBarkLogrusLogger(l.delegate.WithField(key, value))
+	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithField(key, value))
 }
 
 func (l *barkLogrusLogger) WithFields(keyValues LogFields) Logger {
-	return newBarkLogrusLogger(l.delegate.WithFields(logrus.Fields(keyValues.Fields())))
+	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithFields(logrus.Fields(keyValues.Fields())))
 }
-

@@ -1,11 +1,12 @@
-/*
- * "bark" provides an abstraction for loggers used in Uber's
- * Go libraries.  It decouples these libraries slightly from specific
- * logger implementations; for example, the popular open source library
- * "logrus," which offers no interfaces (and thus cannot be, for instance, easily mocked).
- * Users may choose to implement the interface themselves or use the provided logrus
- * wrapper.
- */
+//
+// bark provides an abstraction for loggers and stats reporters used in Uber's
+// Go libraries.  It decouples these libraries slightly from specific
+// logger implementations; for example, the popular open source library
+// logrus, which offers no interfaces (and thus cannot be, for instance, easily mocked).
+//
+// Users may choose to implement the interfaces themselves or to use the provided wrappers
+// for logrus loggers and cactus/go-statsd-client stats reporters.
+//
 package bark
 
 // Copyright (c) 2015 Uber Technologies, Inc.
@@ -27,73 +28,93 @@ package bark
 // THE SOFTWARE.
 
 import (
-	"github.com/Sirupsen/logrus"
 	"time"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/cactus/go-statsd-client/statsd"
 )
 
-/*
- * Interface for loggers accepted by Uber's libraries.
- */
+// Logger is an interface for loggers accepted by Uber's libraries.
 type Logger interface {
+	// Log at debug level
 	Debug(args ...interface{})
+
+	// Log at debug level with fmt.Printf-like formatting
 	Debugf(format string, args ...interface{})
+
+	// Log at info level
 	Info(args ...interface{})
+
+	// Log at info level with fmt.Printf-like formatting
 	Infof(format string, args ...interface{})
+
+	// Log at warning level
 	Warn(args ...interface{})
+
+	// Log at warning level with fmt.Printf-like formatting
 	Warnf(format string, args ...interface{})
+
+	// Log at error level
 	Error(args ...interface{})
+
+	// Log at error level with fmt.Printf-like formatting
 	Errorf(format string, args ...interface{})
+
+	// Log at fatal level, then terminate process (irrecoverable)
 	Fatal(args ...interface{})
+
+	// Log at fatal level with fmt.Printf-like formatting, then terminate process (irrecoverable)
 	Fatalf(format string, args ...interface{})
+
+	// Log at panic level, then panic (recoverable)
 	Panic(args ...interface{})
+
+	// Log at panic level with fmt.Printf-like formatting, then panic (recoverable)
 	Panicf(format string, args ...interface{})
+
+	// Return a logger with the specified key-value pair set, to be logged in a subsequent normal logging call
 	WithField(key string, value interface{}) Logger
+
+	// Return a logger with the specified key-value pairs set, to be  included in a subsequent normal logging call
 	WithFields(keyValues LogFields) Logger
 }
 
-/*
- * Interface for dictionaries passed to WithFields logging method.
- * Exists to provide a layer of indirection so code already using other
- * "Fields" types can be changed to use bark.Logger instances without
- * any refactoring (sidesteps the fact that if we used a non-interface
- * type, then yourloggingmodule.Fields would not assignable to bark.Fields).
- */
+// Logfields is an interface for dictionaries passed to Logger's WithFields logging method.
+// It exists to provide a layer of indirection so code already using other
+// "Fields" types can be changed to use bark.Logger instances without
+// any refactoring (sidestepping the fact that if we used a concrete
+// type, then yourloggingmodule.Fields would not assignable to bark.Fields).
 type LogFields interface {
 	Fields() map[string]interface{}
 }
 
-/*
- * Actual Fields type, as in myLogger.WithFields(bark.Fields{"foo": "bar"}).Info("Fields!")
- */
+// Fields is the concrete LogFields type, as in myLogger.WithFields(bark.Fields{"foo": "bar"}).Info("Fields!")
 type Fields map[string]interface{}
 
-/*
- * Method to provide required layer of indirection for interface Fields type.
- */
+// Fields provides indirection for broader compatibility for the LogFields interface type.
 func (f Fields) Fields() map[string]interface{} {
 	return f
 }
 
-/*
- * Create a bark-compliant wrapper for a logrus-brand logger
- */
+// NewLoggerFromLogrus creates a bark-compliant wrapper for a logrus-brand logger.
 func NewLoggerFromLogrus(wrappedLogger *logrus.Logger) Logger {
 	return newBarkLogrusLogger(wrappedLogger)
 }
 
-/*
- * Interface for statsd-like stats reporters accepted by Uber's libraries.
- */
+// StatsReporter is an interface for statsd-like stats reporters accepted by Uber's libraries.
+// Its methods take optional tag dictionaries which may be ignored by concrete implementations.
 type StatsReporter interface {
+	// Increment a statsd-like counter with optional tags
 	IncCounter(name string, tags map[string]string, value int64)
+
+	// Increment a statsd-like gauge ("set" of the value) with optional tags
 	UpdateGauge(name string, tags map[string]string, value int64)
+
+	// Record a statsd-like timer with optional tags
 	RecordTimer(name string, tags map[string]string, d time.Duration)
 }
 
-/*
- * Create a bark-compliant wrapper for a cactus-brand statsd Statter.
- */
+// NewStatsReporterFromCactus creates a bark-compliant wrapper for a cactus-brand statsd Statter.
 func NewStatsReporterFromCactus(wrappedStatsd statsd.Statter) StatsReporter {
 	return newBarkCactusStatsReporter(wrappedStatsd)
 }
