@@ -32,14 +32,14 @@ func newBarkCactusStatsReporter(statter statsd.Statter) StatsReporter {
 	return &barkCactusStatsReporter{delegate: statter}
 }
 
-func (s *barkCactusStatsReporter) IncCounter(name string, tags map[string]string, value int64) {
+func (s *barkCactusStatsReporter) IncCounter(name string, tags Tags, value int64) {
 	s.delegate.Inc(name, value, 1.0)
 }
 
-func (s *barkCactusStatsReporter) UpdateGauge(name string, tags map[string]string, value int64) {
+func (s *barkCactusStatsReporter) UpdateGauge(name string, tags Tags, value int64) {
 	s.delegate.Gauge(name, value, 1.0)
 }
 
-func (s *barkCactusStatsReporter) RecordTimer(name string, tags map[string]string, d time.Duration) {
+func (s *barkCactusStatsReporter) RecordTimer(name string, tags Tags, d time.Duration) {
 	s.delegate.TimingDuration(name, d, 1.0)
 }

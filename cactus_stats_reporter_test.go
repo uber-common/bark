@@ -19,26 +19,28 @@ package bark_test
 // THE SOFTWARE.
 
 import (
-	"net"
 	"testing"
 	"time"
 
-	"github.com/cactus/go-statsd-client/statsd"
-	"github.com/stretchr/testify/assert"
 	"github.com/uber/bark"
+	"github.com/uber/bark/mocks"
 )
 
 func TestBarkCactusStatsReporter(t *testing.T) {
-	conn, err := net.Listen("tcp", "127.0.0.1:0")
-	assert.NoError(t, err)
 
-	defer conn.Close()
+	statter := &mocks.Statter{}
+	barkClient := bark.NewStatsReporterFromCactus(statter)
 
-	cactusStatter, err := statsd.New(conn.(*net.TCPListener).Addr().String(), "barktest")
-	assert.NoError(t, err)
+	statter.On("Inc", "foo", int64(7), float32(1.0)).Return(nil)
+	barkClient.IncCounter("foo", bark.Tags{"tag": "val"}, 7)
 
-	barkClient := bark.NewStatsReporterFromCactus(cactusStatter)
-	barkClient.IncCounter("foo", map[string]string{"tag": "val"}, 1)
-	barkClient.RecordTimer("bar", map[string]string{"tag": "val"}, time.Duration(10))
-	barkClient.UpdateGauge("baz", map[string]string{"tag": "val"}, 100)
+	statter.On("TimingDuration", "bar", time.Duration(10), float32(1.0)).Return(nil)
+	barkClient.RecordTimer("bar", bark.Tags{"tag": "val"}, time.Duration(10))
+
+	statter.On("Gauge", "baz", int64(123), float32(1.0)).Return(nil)
+	barkClient.UpdateGauge("baz", bark.Tags{"tag": "val"}, 123)
+
+	statter.AssertCalled(t, "Inc", "foo", int64(7), float32(1.0))
+	statter.AssertCalled(t, "TimingDuration", "bar", time.Duration(10), float32(1.0))
+	statter.AssertCalled(t, "Gauge", "baz", int64(123), float32(1.0))
 }

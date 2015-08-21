@@ -117,14 +117,14 @@ func TestWarnf(t *testing.T) {
 	logAndValidate(t, func(barkLogger bark.Logger, logrusLogger *logrus.Logger) {
 		barkLogger.Warnf("warnf1%s", "warnf2")
 		logrusLogger.Warnf("warnf1%s", "warnf2")
-	});
+	})
 }
 
 func TestWithField(t *testing.T) {
 	logAndValidate(t, func(barkLogger bark.Logger, logrusLogger *logrus.Logger) {
 		barkLogger.WithField("key", "value").Info("withfield")
 		logrusLogger.WithField("key", "value").Info("withfield")
-	});
+	})
 }
 
 func TestWithFields(t *testing.T) {
@@ -151,7 +151,6 @@ func TestPanic(t *testing.T) {
 		doPanic(t, logrusLogger.Panic)
 	})
 }
-
 
 func doPanicf(t *testing.T, panicf func(string, ...interface{})) {
 	defer func() {

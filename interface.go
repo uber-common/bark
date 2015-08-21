@@ -101,17 +101,20 @@ func NewLoggerFromLogrus(wrappedLogger *logrus.Logger) Logger {
 	return newBarkLogrusLogger(wrappedLogger)
 }
 
+// Tags is an alias of map[string]string, a type for tags associated with a statistic
+type Tags map[string]string
+
 // StatsReporter is an interface for statsd-like stats reporters accepted by Uber's libraries.
 // Its methods take optional tag dictionaries which may be ignored by concrete implementations.
 type StatsReporter interface {
 	// Increment a statsd-like counter with optional tags
-	IncCounter(name string, tags map[string]string, value int64)
+	IncCounter(name string, tags Tags, value int64)
 
 	// Increment a statsd-like gauge ("set" of the value) with optional tags
-	UpdateGauge(name string, tags map[string]string, value int64)
+	UpdateGauge(name string, tags Tags, value int64)
 
 	// Record a statsd-like timer with optional tags
-	RecordTimer(name string, tags map[string]string, d time.Duration)
+	RecordTimer(name string, tags Tags, d time.Duration)
 }
 
 // NewStatsReporterFromCactus creates a bark-compliant wrapper for a cactus-brand statsd Statter.
