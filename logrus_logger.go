@@ -53,6 +53,18 @@ func (l barkLogrusLogger) WithField(key string, value interface{}) Logger {
 	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithField(key, value))
 }
 
-func (l barkLogrusLogger) WithFields(keyValues LogFields) Logger {
-	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithFields(logrus.Fields(keyValues.Fields())))
+func (l barkLogrusLogger) WithFields(logFields LogFields) Logger {
+	if (logFields == nil) {
+		return l
+	}
+
+	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithFields(logrus.Fields(logFields.Fields())))
+}
+
+func (l barkLogrusLogger) Fields() Fields {
+	if entry, ok := l.logrusLoggerOrEntry.(*logrus.Entry); ok && entry.Data != nil {
+		return Fields(entry.Data)
+	}
+
+	return nil
 }

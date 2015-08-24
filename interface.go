@@ -75,6 +75,10 @@ type Logger interface {
 
 	// Return a logger with the specified key-value pairs set, to be  included in a subsequent normal logging call
 	WithFields(keyValues LogFields) Logger
+
+	// Return map fields associated with this logger, if any (i.e. if this logger was returned from WithField[s])
+	// If no fields are set, returns nil
+	Fields() Fields
 }
 
 // Logfields is an interface for dictionaries passed to Logger's WithFields logging method.

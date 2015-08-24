@@ -144,6 +144,58 @@ func TestWithFields(t *testing.T) {
 	})
 }
 
+func TestGetFields(t *testing.T) {
+	var logger bark.Logger
+
+	// Plain logger
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	require.Equal(t, logger.Fields(), bark.Fields(nil))
+
+	// Add nil, don't crash
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithFields(nil)
+	require.Equal(t, logger.Fields(), bark.Fields(nil))
+
+	// One field added
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithField("foo", "bar")
+	require.Equal(t, logger.Fields(), bark.Fields{"foo": "bar"})
+
+	// Two fields added at once
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithFields(bark.Fields{"foo": "bar", "baz": "bump"})
+	require.Equal(t, logger.Fields(), bark.Fields{"foo": "bar", "baz": "bump"})
+
+	// One then one
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithField("foo", "bar")
+	logger = logger.WithField("baz", "bump")
+	require.Equal(t, logger.Fields(), bark.Fields{"foo": "bar", "baz": "bump"})
+
+	// Two then one
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithFields(bark.Fields{"foo": "bar", "baz": "bump"})
+	logger = logger.WithField("x", "y")
+	require.Equal(t, logger.Fields(), bark.Fields{"foo": "bar", "baz": "bump", "x": "y"})
+
+	// One then two
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithField("x", "y")
+	logger = logger.WithFields(bark.Fields{"foo": "bar", "baz": "bump"})
+	require.Equal(t, logger.Fields(), bark.Fields{"foo": "bar", "baz": "bump", "x": "y"})
+
+	// Two then two
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithFields(bark.Fields{"foo": "bar", "baz": "bump"})
+	logger = logger.WithFields(bark.Fields{"a": "b", "c": "d"})
+	require.Equal(t, logger.Fields(), bark.Fields{"foo": "bar", "baz": "bump", "a": "b", "c": "d"})
+
+	// Add empty map
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithFields(bark.Fields{})
+	require.Equal(t, logger.Fields(), bark.Fields{})
+}
+
 func doPanic(t *testing.T, panicker func(...interface{})) {
 	defer func() {
 		if r := recover(); r != nil {
