@@ -28,7 +28,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/uber/bark"
+	"github.com/uber-common/bark"
 )
 
 // Create a logrus logger that writes its out output to a buffer for inspection
