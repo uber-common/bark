@@ -36,10 +36,11 @@ type logrusLoggerOrEntry interface {
 	Panicf(format string, args ...interface{})
 	WithField(key string, value interface{}) *logrus.Entry
 	WithFields(keyValues logrus.Fields) *logrus.Entry
+	WithError(err error) *logrus.Entry
 }
 
 // The bark-compliant Logger implementation.  Dispatches directly to wrapped logrus
-// instance for all methods except WithField and WithFields
+// instance for all methods except WithField, WithFields and WithError
 type barkLogrusLogger struct {
 	logrusLoggerOrEntry
 }
@@ -54,11 +55,15 @@ func (l barkLogrusLogger) WithField(key string, value interface{}) Logger {
 }
 
 func (l barkLogrusLogger) WithFields(logFields LogFields) Logger {
-	if (logFields == nil) {
+	if logFields == nil {
 		return l
 	}
 
 	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithFields(logrus.Fields(logFields.Fields())))
+}
+
+func (l barkLogrusLogger) WithError(err error) Logger {
+	return newBarkLogrusLogger(l.logrusLoggerOrEntry.WithError(err))
 }
 
 func (l barkLogrusLogger) Fields() Fields {

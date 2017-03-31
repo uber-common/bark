@@ -73,8 +73,11 @@ type Logger interface {
 	// Return a logger with the specified key-value pair set, to be logged in a subsequent normal logging call
 	WithField(key string, value interface{}) Logger
 
-	// Return a logger with the specified key-value pairs set, to be  included in a subsequent normal logging call
+	// Return a logger with the specified key-value pairs set, to be included in a subsequent normal logging call
 	WithFields(keyValues LogFields) Logger
+
+	// Return a logger with the specified error set, to be included in a subsequent normal logging call
+	WithError(err error) Logger
 
 	// Return map fields associated with this logger, if any (i.e. if this logger was returned from WithField[s])
 	// If no fields are set, returns nil
