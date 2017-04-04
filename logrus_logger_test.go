@@ -25,6 +25,8 @@ import (
 	"os/exec"
 	"testing"
 
+	"errors"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -144,6 +146,14 @@ func TestWithFields(t *testing.T) {
 	})
 }
 
+func TestWithError(t *testing.T) {
+	err := errors.New("test error")
+	logAndValidate(t, func(barkLogger bark.Logger, logrusLogger *logrus.Logger) {
+		barkLogger.WithError(err).Info("witherror")
+		logrusLogger.WithError(err).Info("witherror")
+	})
+}
+
 func TestGetFields(t *testing.T) {
 	var logger bark.Logger
 
@@ -194,6 +204,12 @@ func TestGetFields(t *testing.T) {
 	logger = bark.NewLoggerFromLogrus(logrus.New())
 	logger = logger.WithFields(bark.Fields{})
 	require.Equal(t, logger.Fields(), bark.Fields{})
+
+	// Add error
+	err := errors.New("test error")
+	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger = logger.WithError(err)
+	require.Equal(t, logger.Fields(), bark.Fields{logrus.ErrorKey: err})
 }
 
 func doPanic(t *testing.T, panicker func(...interface{})) {
