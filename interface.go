@@ -28,8 +28,8 @@ package bark
 import (
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/cactus/go-statsd-client/statsd"
+	"github.com/sirupsen/logrus"
 )
 
 // Logger is an interface for loggers accepted by Uber's libraries.
