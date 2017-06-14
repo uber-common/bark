@@ -1,7 +1,7 @@
 ## Synopsis  [![Build Status](https://travis-ci.org/uber-common/bark.svg?branch=master)](https://travis-ci.org/uber-common/bark)
 
 Defines an interface for loggers and stats reporters that can be passed to Uber Go libraries.  
-Provides implementations which wrap a common logging module, [logrus](https://github.com/Sirupsen/logrus), 
+Provides implementations which wrap a common logging module, [logrus](https://github.com/sirupsen/logrus), 
 and a common stats reporting module [go-statsd-client](https://github.com/cactus/go-statsd-client).  
 Clients may also choose to implement these interfaces themselves.
 

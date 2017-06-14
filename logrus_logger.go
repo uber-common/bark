@@ -18,7 +18,7 @@
 
 package bark
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // Interface provides indirection so Entry and Logger implementations can use exact same methods
 type logrusLoggerOrEntry interface {

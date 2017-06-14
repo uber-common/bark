@@ -18,11 +18,10 @@
 
 package main
 
-import
-(
+import (
 	"os"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/uber-common/bark"
 )
 
