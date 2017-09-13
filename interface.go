@@ -30,7 +30,6 @@ import (
 
 	"github.com/cactus/go-statsd-client/statsd"
 	"github.com/sirupsen/logrus"
-	"go.uber.org/zap"
 )
 
 // Logger is an interface for loggers accepted by Uber's libraries.
@@ -105,11 +104,6 @@ func (f Fields) Fields() map[string]interface{} {
 // NewLoggerFromLogrus creates a bark-compliant wrapper for a logrus-brand logger.
 func NewLoggerFromLogrus(logger *logrus.Logger) Logger {
 	return newBarkLogrusLogger(logger)
-}
-
-// NewLoggerFromZap create a bark-compliant wrapper for a zap-brand logger.
-func NewLoggerFromZap(logger *zap.Logger) Logger {
-	return newBarkZapLogger(logger)
 }
 
 // Tags is an alias of map[string]string, a type for tags associated with a statistic

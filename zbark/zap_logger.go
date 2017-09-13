@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Uber Technologies, Inc.
+// Copyright (c) 2017 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -16,26 +16,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package bark
+package zbark
 
 import (
 	"sort"
 
+	"github.com/uber-common/bark"
+
 	"go.uber.org/zap"
 )
 
-func newBarkZapLogger(l *zap.Logger) Logger {
+// New builds a Bark logger from a Zap logger.
+func New(l *zap.Logger) bark.Logger {
 	return barkZapLogger{l.Sugar()}
 }
 
 type barkZapLogger struct{ *zap.SugaredLogger }
 
-func (l barkZapLogger) WithField(key string, value interface{}) Logger {
+func (l barkZapLogger) WithField(key string, value interface{}) bark.Logger {
 	l.SugaredLogger = l.SugaredLogger.With(key, value) // safe to change because we pass-by-value
 	return l
 }
 
-func (l barkZapLogger) WithFields(keyValues LogFields) Logger {
+func (l barkZapLogger) WithFields(keyValues bark.LogFields) bark.Logger {
 	barkFields := keyValues.Fields()
 
 	// Deterministic ordering of fields.
@@ -54,12 +57,12 @@ func (l barkZapLogger) WithFields(keyValues LogFields) Logger {
 	return l
 }
 
-func (l barkZapLogger) WithError(err error) Logger {
+func (l barkZapLogger) WithError(err error) bark.Logger {
 	l.SugaredLogger = l.SugaredLogger.With(zap.Error(err)) // safe to change because we pass-by-value
 	return l
 }
 
-func (l barkZapLogger) Fields() Fields {
+func (l barkZapLogger) Fields() bark.Fields {
 	l.SugaredLogger.Warn("Fields() call to bark logger is not supported by Zap")
 	return nil
 }
