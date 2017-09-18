@@ -26,19 +26,21 @@ import (
 	"go.uber.org/zap"
 )
 
-// New builds a Bark logger from a Zap logger.
-func New(l *zap.Logger) bark.Logger {
-	return barkZapLogger{l.Sugar()}
+// Barkify wraps a zap logger in a compatibility layer so that it satisfies
+// the bark.Logger interface. Note that the wrapper always returns nil from
+// the Fields method, since zap doesn't support this functionality.
+func Barkify(l *zap.Logger) bark.Logger {
+	return barker{l.Sugar()}
 }
 
-type barkZapLogger struct{ *zap.SugaredLogger }
+type barker struct{ *zap.SugaredLogger }
 
-func (l barkZapLogger) WithField(key string, value interface{}) bark.Logger {
+func (l barker) WithField(key string, value interface{}) bark.Logger {
 	l.SugaredLogger = l.SugaredLogger.With(key, value) // safe to change because we pass-by-value
 	return l
 }
 
-func (l barkZapLogger) WithFields(keyValues bark.LogFields) bark.Logger {
+func (l barker) WithFields(keyValues bark.LogFields) bark.Logger {
 	barkFields := keyValues.Fields()
 
 	// Deterministic ordering of fields.
@@ -57,12 +59,15 @@ func (l barkZapLogger) WithFields(keyValues bark.LogFields) bark.Logger {
 	return l
 }
 
-func (l barkZapLogger) WithError(err error) bark.Logger {
+func (l barker) WithError(err error) bark.Logger {
 	l.SugaredLogger = l.SugaredLogger.With(zap.Error(err)) // safe to change because we pass-by-value
 	return l
 }
 
-func (l barkZapLogger) Fields() bark.Fields {
-	l.SugaredLogger.Warn("Fields() call to bark logger is not supported by Zap")
+func (l barker) Fields() bark.Fields {
+	// Zap has already marshaled the accumulated logger context to []byte, so we
+	// can't reconstruct the original objects. To satisfy this interface, just
+	// return nil.
+	l.SugaredLogger.Warn("zap-to-bark compatibility wrapper does not support Fields method")
 	return nil
 }

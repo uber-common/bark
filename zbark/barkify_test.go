@@ -32,16 +32,16 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-func newTestLogger() (bark.Logger, *observer.ObservedLogs) {
+func newTestBarker() (bark.Logger, *observer.ObservedLogs) {
 	core, logs := observer.New(zap.LevelEnablerFunc(func(zapcore.Level) bool {
 		return true
 	}))
-	return zbark.New(zap.New(core)), logs
+	return zbark.Barkify(zap.New(core)), logs
 }
 
 func TestBarkLoggerWith(t *testing.T) {
 	t.Run("WithField", func(t *testing.T) {
-		l, logs := newTestLogger()
+		l, logs := newTestBarker()
 		l = l.WithField("foo", "bar")
 
 		l.Info("hello")
@@ -57,7 +57,7 @@ func TestBarkLoggerWith(t *testing.T) {
 	})
 
 	t.Run("WithFields", func(t *testing.T) {
-		l, logs := newTestLogger()
+		l, logs := newTestBarker()
 		l = l.WithFields(bark.Fields{
 			"foo": "bar",
 			"baz": int8(42),
@@ -87,7 +87,7 @@ func TestBarkLoggerWith(t *testing.T) {
 	})
 
 	t.Run("WithError", func(t *testing.T) {
-		l, logs := newTestLogger()
+		l, logs := newTestBarker()
 		l = l.WithError(errors.New("great sadness"))
 
 		l.Info("hello")
@@ -103,7 +103,7 @@ func TestBarkLoggerWith(t *testing.T) {
 	})
 
 	t.Run("Fields", func(t *testing.T) {
-		l, logs := newTestLogger()
+		l, logs := newTestBarker()
 		l = l.WithField("foo", "bar").WithError(errors.New("great sadness"))
 		assert.Empty(t, l.Fields(), "expected empty field list")
 
@@ -111,7 +111,7 @@ func TestBarkLoggerWith(t *testing.T) {
 
 		entry := logs.All()[0]
 		assert.Equal(t,
-			"Fields() call to bark logger is not supported by Zap", entry.Message,
+			"zap-to-bark compatibility wrapper does not support Fields method", entry.Message,
 			"message did not match")
 		assert.Equal(t, zapcore.WarnLevel, entry.Level, "message level did not match")
 	})
