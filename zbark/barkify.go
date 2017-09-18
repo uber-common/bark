@@ -65,6 +65,9 @@ func (l barker) WithError(err error) bark.Logger {
 }
 
 func (l barker) Fields() bark.Fields {
-	l.SugaredLogger.Warn("Fields() call to bark logger is not supported by Zap")
+	// Zap has already marshaled the accumulated logger context to []byte, so we
+	// can't reconstruct the original objects. To satisfy this interface, just
+	// return nil.
+	l.SugaredLogger.Warn("zap-to-bark compatibility wrapper does not support Fields method")
 	return nil
 }

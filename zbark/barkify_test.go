@@ -111,7 +111,7 @@ func TestBarkLoggerWith(t *testing.T) {
 
 		entry := logs.All()[0]
 		assert.Equal(t,
-			"Fields() call to bark logger is not supported by Zap", entry.Message,
+			"zap-to-bark compatibility wrapper does not support Fields method", entry.Message,
 			"message did not match")
 		assert.Equal(t, zapcore.WarnLevel, entry.Level, "message level did not match")
 	})
