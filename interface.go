@@ -26,6 +26,7 @@
 package bark
 
 import (
+	"io/ioutil"
 	"time"
 
 	"github.com/cactus/go-statsd-client/statsd"
@@ -99,6 +100,15 @@ type Fields map[string]interface{}
 // Fields provides indirection for broader compatibility for the LogFields interface type.
 func (f Fields) Fields() map[string]interface{} {
 	return f
+}
+
+// NewNopLogger creates a no-op logger.
+func NewNopLogger() Logger {
+	return NewLoggerFromLogrus(&logrus.Logger{
+		Out:       ioutil.Discard,
+		Formatter: new(logrus.JSONFormatter),
+		Level:     logrus.DebugLevel,
+	})
 }
 
 // NewLoggerFromLogrus creates a bark-compliant wrapper for a logrus-brand logger.

@@ -286,3 +286,10 @@ func TestFatalf(t *testing.T) {
 	barkStderr := execFatalTool(t, "bark.Fatalf")
 	validateOutput(t, barkStderr, logrusStderr)
 }
+
+func TestNopLogger(t *testing.T) {
+	assert.NotPanics(t, func() {
+		logger := bark.NewNopLogger()
+		logger.Info("hello")
+	})
+}
