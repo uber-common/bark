@@ -85,7 +85,7 @@ type Logger interface {
 	Fields() Fields
 }
 
-// Logfields is an interface for dictionaries passed to Logger's WithFields logging method.
+// LogFields is an interface for dictionaries passed to Logger's WithFields logging method.
 // It exists to provide a layer of indirection so code already using other
 // "Fields" types can be changed to use bark.Logger instances without
 // any refactoring (sidestepping the fact that if we used a concrete
