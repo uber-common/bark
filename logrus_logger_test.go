@@ -35,7 +35,7 @@ import (
 
 // Create a logrus logger that writes its out output to a buffer for inspection
 func getLogrusLogger() (*logrus.Logger, *bytes.Buffer) {
-	var logrusLogger *logrus.Logger = logrus.New()
+	logrusLogger := logrus.New()
 
 	buffer := &bytes.Buffer{}
 	logrusLogger.Out = buffer
@@ -155,10 +155,8 @@ func TestWithError(t *testing.T) {
 }
 
 func TestGetFields(t *testing.T) {
-	var logger bark.Logger
-
 	// Plain logger
-	logger = bark.NewLoggerFromLogrus(logrus.New())
+	logger := bark.NewLoggerFromLogrus(logrus.New())
 	require.Equal(t, logger.Fields(), bark.Fields(nil))
 
 	// Add nil, don't crash
