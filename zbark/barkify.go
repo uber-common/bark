@@ -30,6 +30,9 @@ import (
 // the bark.Logger interface. Note that the wrapper always returns nil from
 // the Fields method, since zap doesn't support this functionality.
 func Barkify(l *zap.Logger) bark.Logger {
+	if z, ok := l.Core().(*zapper); ok {
+		return z.l
+	}
 	return barker{l.Sugar()}
 }
 

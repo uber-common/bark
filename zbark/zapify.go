@@ -30,6 +30,9 @@ import (
 // *zap.Logger. Note that the wrapper always treats zap's DPanicLevel as an
 // error (even in development).
 func Zapify(l bark.Logger) *zap.Logger {
+	if b, ok := l.(barker); ok {
+		return b.SugaredLogger.Desugar()
+	}
 	return zap.New(&zapper{l})
 }
 
