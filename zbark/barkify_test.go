@@ -20,6 +20,7 @@ package zbark_test
 
 import (
 	"errors"
+	"path"
 	"testing"
 
 	"github.com/uber-common/bark"
@@ -36,7 +37,7 @@ func newTestBarker() (bark.Logger, *observer.ObservedLogs) {
 	core, logs := observer.New(zap.LevelEnablerFunc(func(zapcore.Level) bool {
 		return true
 	}))
-	return zbark.Barkify(zap.New(core)), logs
+	return zbark.Barkify(zap.New(core, zap.AddCaller())), logs
 }
 
 func TestBarkLoggerWith(t *testing.T) {
@@ -54,6 +55,9 @@ func TestBarkLoggerWith(t *testing.T) {
 		assert.Equal(t, zapcore.StringType, field.Type, "field type did not match")
 		assert.Equal(t, "foo", field.Key, "field name did not match")
 		assert.Equal(t, "bar", field.String, "field value did not match")
+
+		callerFile := path.Base(entry.Caller.File)
+		assert.Equal(t, "barkify_test.go", callerFile, "caller was not test file")
 	})
 
 	t.Run("WithFields", func(t *testing.T) {
