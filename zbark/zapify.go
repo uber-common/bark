@@ -31,7 +31,7 @@ import (
 // error (even in development).
 func Zapify(l bark.Logger) *zap.Logger {
 	if b, ok := l.(barker); ok {
-		return b.SugaredLogger.Desugar()
+		return b.SugaredLogger.Desugar().WithOptions(zap.AddCallerSkip(-1))
 	}
 	return zap.New(&zapper{l})
 }
