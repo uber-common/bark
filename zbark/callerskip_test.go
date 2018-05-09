@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/uber-common/bark"
+	"github.com/uber-common/bark/internal/callerskiphelper"
 	"github.com/uber-common/bark/zbark"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -15,58 +17,61 @@ import (
 // TestCallerSkip ensures file and line are reported correctly by converted
 // loggers.
 func TestCallerSkip(t *testing.T) {
-	const expectedFile = "callerskip_test.go"
+	const thisFile = "callerskip_test.go"
+	const helperFile = "callerskiphelper.go"
 
 	observableCore, observedLogs := observer.New(zap.DebugLevel)
 
 	// assertCallerFile makes assertions about logs from the observable core.
-	assertCallerFile := func(t *testing.T, msg string) {
+	assertCallerFile := func(t *testing.T, expectedFile, msg string) {
 		logEntries := observedLogs.TakeAll()
 		assert.Len(t, logEntries, 1, "expected one log message")
-		assert.Equal(t, msg, logEntries[0].Message, "unexpected message")
+		assert.Contains(t, logEntries[0].Message, msg, "unexpected message")
 		callerFile := path.Base(logEntries[0].Caller.File)
 		assert.Equal(t, expectedFile, callerFile, "incorrect file")
+	}
+
+	testZapper := func(t *testing.T, name string, z *zap.Logger) {
+		t.Run(fmt.Sprintf("%s logger same file", name), func(t *testing.T) {
+			msg := mkRandomString()
+			z.Info(msg)
+			assertCallerFile(t, thisFile, msg)
+		})
+		t.Run(fmt.Sprintf("%s logger using helper", name), func(t *testing.T) {
+			msg := mkRandomString()
+			callerskiphelper.LogWithZapper(z, msg)
+			assertCallerFile(t, helperFile, msg)
+		})
+	}
+
+	testBarker := func(t *testing.T, name string, b bark.Logger) {
+		t.Run(fmt.Sprintf("%s logger same file", name), func(t *testing.T) {
+			msg := mkRandomString()
+			b.Info(msg)
+			assertCallerFile(t, thisFile, msg)
+		})
+		t.Run(fmt.Sprintf("%s logger using helper", name), func(t *testing.T) {
+			msg := mkRandomString()
+			callerskiphelper.LogWithBarker(b, msg)
+			assertCallerFile(t, helperFile, msg)
+		})
 	}
 
 	z0 := zap.New(observableCore, zap.AddCaller(), zap.AddStacktrace(zap.DebugLevel))
 	b1 := zbark.Barkify(z0)
 
-	t.Run("original zap logger", func(t *testing.T) {
-		// Ensure Barkify doesn't modify its argument.
-		msg := mkRandomString()
-		z0.Info(msg)
-		assertCallerFile(t, msg)
-	})
-
-	t.Run("barkified logger", func(t *testing.T) {
-		msg := mkRandomString()
-		b1.Info(msg)
-		assertCallerFile(t, msg)
-	})
+	// Ensure Barkify doesn't modify its argument.
+	testZapper(t, "original zap", z0)
+	testBarker(t, "barkified", b1)
 
 	z2 := zbark.Zapify(b1)
-
-	t.Run("re-zapified logger", func(t *testing.T) {
-		msg := mkRandomString()
-		z2.Info(msg)
-		assertCallerFile(t, msg)
-	})
+	testZapper(t, "re-zapified", z2)
 
 	b3 := zbark.Barkify(z2)
-
-	t.Run("re-barkified logger", func(t *testing.T) {
-		msg := mkRandomString()
-		b3.Info(msg)
-		assertCallerFile(t, msg)
-	})
+	testBarker(t, "re-barkified", b3)
 
 	z4 := zbark.Zapify(b3)
-
-	t.Run("re-re-zapified logger", func(t *testing.T) {
-		msg := mkRandomString()
-		z4.Info(msg)
-		assertCallerFile(t, msg)
-	})
+	testZapper(t, "re-re-zapified", z4)
 }
 
 func mkRandomString() string {
