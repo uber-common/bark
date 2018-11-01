@@ -33,7 +33,7 @@ func Barkify(l *zap.Logger) bark.Logger {
 	if z, ok := l.Core().(*zapper); ok {
 		return z.l
 	}
-	return barker{l.Sugar()}
+	return barker{l.WithOptions(zap.AddCallerSkip(_barkifyCallerSkip)).Sugar()}
 }
 
 type barker struct{ *zap.SugaredLogger }
