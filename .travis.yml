@@ -3,12 +3,11 @@ language: go
 sudo: false
 
 go:
-  - "1.9"
-  - "1.10"
-  - tip
+  - "1.13.x"
+  - "1.14.x"
 
 install:
-  - make get-deps
+  - go mod download
 
 script:
   - make test
